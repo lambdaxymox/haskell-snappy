@@ -1,4 +1,4 @@
-*_doc/
-*.ibc
+Cargo.lock
+dist
 target
 *~
