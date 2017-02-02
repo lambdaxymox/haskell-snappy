@@ -25,35 +25,35 @@ pub enum SnappyStatus {
     SnappyBufferTooSmall = 2,
 }
 
-pub fn compress(src: &[u8]) -> Vec<u8> {
+pub fn compress(source: &[u8]) -> Vec<u8> {
     unsafe {
-        let srclen = src.len() as size_t;
-        let psrc = src.as_ptr();
+        let source_len = source.len() as size_t;
+        let source_ptr = source.as_ptr();
 
-        let mut dstlen = snappy_max_compressed_length(srclen);
-        let mut dst = Vec::with_capacity(dstlen as usize);
-        let pdst = dst.as_mut_ptr();
+        let mut dest_len = snappy_max_compressed_length(source_len);
+        let mut dest = Vec::with_capacity(dest_len as usize);
+        let dest_ptr = dest.as_mut_ptr();
 
-        snappy_compress(psrc, srclen, pdst, &mut dstlen);
-        dst.set_len(dstlen as usize);
-        dst
+        snappy_compress(source_ptr, source_len, dest_ptr, &mut dest_len);
+        dest.set_len(dest_len as usize);
+        dest
     }
 }
 
-pub fn uncompress(src: &[u8]) -> Option<Vec<u8>> {
+pub fn uncompress(source: &[u8]) -> Option<Vec<u8>> {
     unsafe {
-        let srclen = src.len() as size_t;
-        let psrc = src.as_ptr();
+        let source_len = source.len() as size_t;
+        let source_ptr = source.as_ptr();
 
-        let mut dstlen: size_t = 0;
-        snappy_uncompressed_length(psrc, srclen, &mut dstlen);
+        let mut dest_len: size_t = 0;
+        snappy_uncompressed_length(source_ptr, source_len, &mut dest_len);
 
-        let mut dst = Vec::with_capacity(dstlen as usize);
-        let pdst = dst.as_mut_ptr();
+        let mut dest = Vec::with_capacity(dest_len as usize);
+        let dest_ptr = dest.as_mut_ptr();
 
-        if snappy_uncompress(psrc, srclen, pdst, &mut dstlen) == 0 {
-            dst.set_len(dstlen as usize);
-            Some(dst)
+        if snappy_uncompress(source_ptr, source_len, dest_ptr, &mut dest_len) == 0 {
+            dest.set_len(dest_len as usize);
+            Some(dest)
         } else {
             None // SNAPPY_INVALID_INPUT
         }
@@ -90,30 +90,31 @@ pub fn validate_compressed_buffer(src: &[u8]) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     #[test]
-    fn test_valid() {
-        let d = vec![0xde, 0xad, 0xd0, 0x0d];
-        let c: &[u8] = &compress(&d);
-        assert!(validate_compressed_buffer(c));
-        assert!(uncompress(c) == Some(d));
+    fn test_valid_buffer() {
+        let uncompressed = vec![0xde, 0xad, 0xd0, 0x0d];
+        let compressed: &[u8] = &super::compress(&uncompressed);
+
+        assert!(super::validate_compressed_buffer(compressed));
+        assert!(super::uncompress(compressed) == Some(uncompressed));
     }
 
     #[test]
-    fn test_invalid() {
-        let d = vec![0, 0, 0, 0];
-        assert!(!validate_compressed_buffer(&d));
-        assert!(uncompress(&d).is_none());
+    fn test_invalid_buffer() {
+        let buf = vec![0, 0, 0, 0];
+        
+        assert!(!super::validate_compressed_buffer(&buf));
+        assert!(super::uncompress(&buf).is_none());
     }
 
     #[test]
     fn test_empty() {
-        let d = vec![];
-        assert!(!validate_compressed_buffer(&d));
-        assert!(uncompress(&d).is_none());
-        let c = compress(&d);
-        assert!(validate_compressed_buffer(&c));
-        assert!(uncompress(&c) == Some(d));
+        let buf = vec![];
+        assert!(!super::validate_compressed_buffer(&buf));
+        assert!(super::uncompress(&buf).is_none());
+
+        let compressed_buf = super::compress(&buf);
+        assert!(super::validate_compressed_buffer(&compressed_buf));
+        assert!(super::uncompress(&compressed_buf) == Some(buf));
     }
 }
