@@ -26,7 +26,7 @@ pub enum SnappyStatus {
     SnappyBufferTooSmall = 2,
 }
 
-pub fn compress(source: &[u8]) -> Vec<u8> {
+pub extern fn compress(source: &[u8]) -> Vec<u8> {
     unsafe {
         let source_len = source.len() as size_t;
         let source_ptr = source.as_ptr();
@@ -41,7 +41,7 @@ pub fn compress(source: &[u8]) -> Vec<u8> {
     }
 }
 
-pub fn uncompress(source: &[u8]) -> Option<Vec<u8>> {
+pub extern fn uncompress(source: &[u8]) -> Option<Vec<u8>> {
     unsafe {
         let source_len = source.len() as size_t;
         let source_ptr = source.as_ptr();
@@ -61,13 +61,13 @@ pub fn uncompress(source: &[u8]) -> Option<Vec<u8>> {
     }
 }
 
-pub fn max_compressed_length(source_length: usize) -> usize {
+pub extern fn max_compressed_length(source_length: usize) -> usize {
     unsafe {
         snappy_max_compressed_length(source_length)
     }
 }
 
-pub fn uncompressed_length(compressed: &[u8]) -> Result<usize, SnappyStatus> {
+pub extern fn uncompressed_length(compressed: &[u8]) -> Result<usize, SnappyStatus> {
     unsafe {
         let mut result: usize = 0;
         let snappy_status = 
@@ -82,7 +82,7 @@ pub fn uncompressed_length(compressed: &[u8]) -> Result<usize, SnappyStatus> {
     }
 }
 
-pub fn validate_compressed_buffer(src: &[u8]) -> bool {
+pub extern fn validate_compressed_buffer(src: &[u8]) -> bool {
     unsafe {
         snappy_validate_compressed_buffer(src.as_ptr(), src.len() as size_t) == 0
     }
