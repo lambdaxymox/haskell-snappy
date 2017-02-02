@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use libc::{c_int, size_t};
 
 
@@ -102,7 +103,7 @@ mod tests {
     #[test]
     fn test_invalid_buffer() {
         let buf = vec![0, 0, 0, 0];
-        
+
         assert!(!super::validate_compressed_buffer(&buf));
         assert!(super::uncompress(&buf).is_none());
     }
