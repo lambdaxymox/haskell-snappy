@@ -17,6 +17,10 @@ pub fn get_unchecked(src: &[u8], index: usize) -> u8 {
     }
 }
 
-pub fn set_unchecked(src: &mut [u8], index: usize, elem: u8) {
+pub unsafe fn set_unchecked(src: &mut [u8], index: usize, elem: u8) {
     src[index] = elem;
+}
+
+pub unsafe fn get_ptr(src: &[u8]) -> *const u8 { 
+    src.as_ptr()
 }

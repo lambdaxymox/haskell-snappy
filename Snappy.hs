@@ -1,9 +1,10 @@
-{-# LANGUAGE ForeignFunctionInterface #-}
+{-# LANGUAGE ForeignFunctionInterface, FlexibleInstances #-}
 
 module Snappy
     (
         maxCompressedLength,
         validateCompressedBuffer,
+        compress,
     )
     where 
 
@@ -16,18 +17,20 @@ import           Foreign.Storable
 
 -- Here we are using the opaque struct pattern to 
 -- represent Rust's slice type.
--- TODO: Add a proper interface for interacting with foreign byte slices.
 data RawRustSlice
 
+foreign import ccall "snappy::get_ptr"
+    rust_getRawPtr :: Ptr RawRustSlice -> Ptr Word8
+
 foreign import ccall "snappy::get_unchecked"
-    rust_rawRustSliceGet :: Ptr RawRustSlice -> Int -> IO Word8
+    rust_rawSliceGet :: Ptr RawRustSlice -> Int -> IO Word8
 
 foreign import ccall "snappy::set_unchecked"
-    rust_rawRustSliceSet :: Ptr RawRustSlice -> Int -> Word8 -> IO ()
+    rust_rawSliceSet :: Ptr RawRustSlice -> Int -> Word8 -> IO ()
 
 type RustSlice = ForeignPtr RawRustSlice
 
--- TODO: Add a storable interface for RustVec.
+
 data RawRustVec
 type RustVec = ForeignPtr RawRustVec
 
@@ -35,7 +38,7 @@ type RawSnappyStatus = Int
 
 data SnappyStatus = SnappyOk | SnappyInvalidInput | SnappyBufferTooSmall
 
--- TODO: Add a storable interface for RustVec.
+
 data RustSnappyResult
 type SnappyResult = ForeignPtr RustSnappyResult
 
@@ -47,7 +50,7 @@ toSnappyStatus status =
         2 -> Just SnappyBufferTooSmall
         _ -> Nothing
 
--- TODO: Add a storable interface for RawRustOptionalVec.
+
 data RawRustOptionalVec
 type RustOptionalVec = ForeignPtr RawRustOptionalVec
 
@@ -75,14 +78,15 @@ validateCompressedBuffer :: RustSlice -> IO Bool
 validateCompressedBuffer fptr = 
     withForeignPtr fptr (\ptr -> return $ rust_validateCompressedBuffer ptr)
 
+wrapper f = \ptr -> join $ newForeignPtr_ <$> f ptr
+
+withForeignFunc f = \bytes -> withForeignPtr bytes (wrapper f)
+
 compress :: RustSlice -> IO RustVec
-compress bytes = 
-    withForeignPtr bytes (\ptr -> join $ newForeignPtr_ <$> rust_compress ptr)
+compress = withForeignFunc rust_compress
 
 uncompressedLength :: RustSlice -> IO SnappyResult
-uncompressedLength bytes = 
-    withForeignPtr bytes (\ptr -> join $ newForeignPtr_ <$> rust_uncompressedLength ptr)
+uncompressedLength = withForeignFunc rust_uncompressedLength
 
 uncompress :: RustSlice -> IO RustOptionalVec
-uncompress bytes = 
-    withForeignPtr bytes (\ptr -> join $ newForeignPtr_ <$> rust_uncompress ptr)
+uncompress = withForeignFunc rust_uncompress
