@@ -35,6 +35,9 @@ foreign import ccall safe "compress"
 foreign import ccall safe "uncompressed_length"
     rust_uncompressedLength :: Ptr RawRustSlice -> IO (Ptr RustSnappyResult)
 
+foreign import ccall safe "uncompress"
+    rust_uncompress :: Ptr RawRustSlice -> IO (Ptr RawRustOptionalVec)
+
 maxCompressedLength :: Integral a => a -> a
 maxCompressedLength = fromIntegral . rust_maxCompressedLength . fromIntegral
 
@@ -65,4 +68,12 @@ type SnappyResult = ForeignPtr RustSnappyResult
 uncompressedLength :: RustSlice -> IO SnappyResult
 uncompressedLength bytes = 
     withForeignPtr bytes (\ptr -> join $ newForeignPtr_ <$> rust_uncompressedLength ptr)
+
+-- TODO: Add a storable interface for RawRustOptionalVec.
+data RawRustOptionalVec
+type RustOptionalVec = ForeignPtr RawRustOptionalVec
+
+uncompress :: RustSlice -> IO RustOptionalVec
+uncompress bytes = 
+    withForeignPtr bytes (\ptr -> join $ newForeignPtr_ <$> rust_uncompress ptr)
 
