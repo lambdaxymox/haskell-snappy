@@ -23,6 +23,27 @@ type RustSlice = ForeignPtr RawRustSlice
 data RawRustVec
 type RustVec = ForeignPtr RawRustVec
 
+type RawSnappyStatus = Int
+
+data SnappyStatus = SnappyOk | SnappyInvalidInput | SnappyBufferTooSmall
+
+-- TODO: Add a storable interface for RustVec.
+data RustSnappyResult
+type SnappyResult = ForeignPtr RustSnappyResult
+
+toSnappyStatus :: RawSnappyStatus -> Maybe SnappyStatus
+toSnappyStatus status = 
+    case status of
+        0 -> Just SnappyOk
+        1 -> Just SnappyInvalidInput
+        2 -> Just SnappyBufferTooSmall
+        _ -> Nothing
+
+-- TODO: Add a storable interface for RawRustOptionalVec.
+data RawRustOptionalVec
+type RustOptionalVec = ForeignPtr RawRustOptionalVec
+
+
 foreign import ccall safe "max_compressed_length" 
     rust_maxCompressedLength :: CUInt -> CUInt
 
@@ -49,31 +70,10 @@ compress :: RustSlice -> IO RustVec
 compress bytes = 
     withForeignPtr bytes (\ptr -> join $ newForeignPtr_ <$> rust_compress ptr)
 
-type RawSnappyStatus = Int
-
-data SnappyStatus = SnappyOk | SnappyInvalidInput | SnappyBufferTooSmall
-
-toSnappyStatus :: RawSnappyStatus -> Maybe SnappyStatus
-toSnappyStatus status = 
-    case status of
-        0 -> Just SnappyOk
-        1 -> Just SnappyInvalidInput
-        2 -> Just SnappyBufferTooSmall
-        _ -> Nothing
-
--- TODO: Add a storable interface for RustVec.
-data RustSnappyResult
-type SnappyResult = ForeignPtr RustSnappyResult
-
 uncompressedLength :: RustSlice -> IO SnappyResult
 uncompressedLength bytes = 
     withForeignPtr bytes (\ptr -> join $ newForeignPtr_ <$> rust_uncompressedLength ptr)
 
--- TODO: Add a storable interface for RawRustOptionalVec.
-data RawRustOptionalVec
-type RustOptionalVec = ForeignPtr RawRustOptionalVec
-
 uncompress :: RustSlice -> IO RustOptionalVec
 uncompress bytes = 
     withForeignPtr bytes (\ptr -> join $ newForeignPtr_ <$> rust_uncompress ptr)
-
