@@ -117,7 +117,7 @@ mod tests {
         let compressed: &[u8] = &super::compress(&uncompressed);
 
         assert!(super::validate_compressed_buffer(compressed));
-        assert!(super::uncompress(compressed) == Some(uncompressed));
+        assert!(*super::uncompress(compressed) == Some(uncompressed));
     }
 
     #[test]
@@ -136,6 +136,6 @@ mod tests {
 
         let compressed_buf = super::compress(&buf);
         assert!(super::validate_compressed_buffer(&compressed_buf));
-        assert!(super::uncompress(&compressed_buf) == Some(buf));
+        assert!(*super::uncompress(&compressed_buf) == Some(buf));
     }
 }

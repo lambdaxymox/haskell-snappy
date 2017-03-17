@@ -19,6 +19,12 @@ import           Foreign.Storable
 -- TODO: Add a proper interface for interacting with foreign byte slices.
 data RawRustSlice
 
+foreign import ccall "snappy::get_unchecked"
+    rust_rawRustSliceGet :: Ptr RawRustSlice -> Int -> IO Word8
+
+foreign import ccall "snappy::set_unchecked"
+    rust_rawRustSliceSet :: Ptr RawRustSlice -> Int -> Word8 -> IO ()
+
 type RustSlice = ForeignPtr RawRustSlice
 
 -- TODO: Add a storable interface for RustVec.
