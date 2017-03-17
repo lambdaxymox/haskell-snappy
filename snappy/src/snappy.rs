@@ -48,7 +48,7 @@ pub extern fn compress(source: &[u8]) -> Box<Vec<u8>> {
 }
 
 #[inline]
-pub extern fn __uncompress(source: &[u8]) -> Option<Vec<u8>> {
+fn __uncompress(source: &[u8]) -> Option<Vec<u8>> {
     unsafe {
         let source_len = source.len() as size_t;
         let source_ptr = source.as_ptr();
@@ -69,7 +69,7 @@ pub extern fn __uncompress(source: &[u8]) -> Option<Vec<u8>> {
 }
 
 #[no_mangle]
-pub extern fn uncompress(source: &[u8]) -> Box<Option<Vec<u8>> {
+pub extern fn uncompress(source: &[u8]) -> Box<Option<Vec<u8>>> {
     Box::new(__uncompress(source))
 }
 
@@ -81,7 +81,7 @@ pub extern fn max_compressed_length(source_length: usize) -> usize {
 }
 
 #[inline]
-pub extern fn __uncompressed_length(compressed: &[u8]) -> Result<usize, SnappyStatus> {
+fn __uncompressed_length(compressed: &[u8]) -> Result<usize, SnappyStatus> {
     unsafe {
         let mut result: usize = 0;
         let snappy_status = 

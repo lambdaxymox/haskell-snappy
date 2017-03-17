@@ -12,11 +12,13 @@ import           Control.Monad
 import           Foreign
 import           Foreign.C.Types
 import           Foreign.ForeignPtr
+import           Foreign.Storable
 
 -- Here we are using the opaque struct pattern to 
 -- represent Rust's slice type.
 -- TODO: Add a proper interface for interacting with foreign byte slices.
 data RawRustSlice
+
 type RustSlice = ForeignPtr RawRustSlice
 
 -- TODO: Add a storable interface for RustVec.
@@ -58,6 +60,7 @@ foreign import ccall safe "uncompressed_length"
 
 foreign import ccall safe "uncompress"
     rust_uncompress :: Ptr RawRustSlice -> IO (Ptr RawRustOptionalVec)
+
 
 maxCompressedLength :: Integral a => a -> a
 maxCompressedLength = fromIntegral . rust_maxCompressedLength . fromIntegral
