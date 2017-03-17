@@ -26,8 +26,8 @@ pub enum SnappyStatus {
     SnappyBufferTooSmall = 2,
 }
 
-#[no_mangle]
-pub extern fn compress(source: &[u8]) -> Vec<u8> {
+#[inline]
+fn __compress(source: &[u8]) -> Vec<u8> {
     unsafe {
         let source_len = source.len() as size_t;
         let source_ptr = source.as_ptr();
@@ -43,7 +43,12 @@ pub extern fn compress(source: &[u8]) -> Vec<u8> {
 }
 
 #[no_mangle]
-pub extern fn uncompress(source: &[u8]) -> Option<Vec<u8>> {
+pub extern fn compress(source: &[u8]) -> Box<Vec<u8>> {
+    Box::new(__compress(source))
+}
+
+#[inline]
+pub extern fn __uncompress(source: &[u8]) -> Option<Vec<u8>> {
     unsafe {
         let source_len = source.len() as size_t;
         let source_ptr = source.as_ptr();
@@ -64,14 +69,19 @@ pub extern fn uncompress(source: &[u8]) -> Option<Vec<u8>> {
 }
 
 #[no_mangle]
+pub extern fn uncompress(source: &[u8]) -> Box<Option<Vec<u8>> {
+    Box::new(__uncompress(source))
+}
+
+#[no_mangle]
 pub extern fn max_compressed_length(source_length: usize) -> usize {
     unsafe {
         snappy_max_compressed_length(source_length)
     }
 }
 
-#[no_mangle]
-pub extern fn uncompressed_length(compressed: &[u8]) -> Result<usize, SnappyStatus> {
+#[inline]
+pub extern fn __uncompressed_length(compressed: &[u8]) -> Result<usize, SnappyStatus> {
     unsafe {
         let mut result: usize = 0;
         let snappy_status = 
@@ -84,6 +94,11 @@ pub extern fn uncompressed_length(compressed: &[u8]) -> Result<usize, SnappyStat
             _ => Err(SnappyStatus::SnappyInvalidInput)
         }
     }
+}
+
+#[no_mangle]
+pub extern fn uncompressed_length(compressed: &[u8]) -> Box<Result<usize, SnappyStatus>> {
+    Box::new(__uncompressed_length(compressed))
 }
 
 #[no_mangle]
