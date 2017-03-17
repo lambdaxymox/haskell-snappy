@@ -32,6 +32,9 @@ foreign import ccall safe "validate_compressed_buffer"
 foreign import ccall safe "compress"
     rust_compress :: Ptr RawRustSlice -> IO (Ptr RawRustVec)
 
+foreign import ccall safe "uncompressed_length"
+    rust_uncompressedLength :: Ptr RawRustSlice -> IO (Ptr RustSnappyResult)
+
 maxCompressedLength :: Integral a => a -> a
 maxCompressedLength = fromIntegral . rust_maxCompressedLength . fromIntegral
 
@@ -42,4 +45,24 @@ validateCompressedBuffer fptr =
 compress :: RustSlice -> IO RustVec
 compress bytes = 
     withForeignPtr bytes (\ptr -> join $ newForeignPtr_ <$> rust_compress ptr)
+
+type RawSnappyStatus = Int
+
+data SnappyStatus = SnappyOk | SnappyInvalidInput | SnappyBufferTooSmall
+
+toSnappyStatus :: RawSnappyStatus -> Maybe SnappyStatus
+toSnappyStatus status = 
+    case status of
+        0 -> Just SnappyOk
+        1 -> Just SnappyInvalidInput
+        2 -> Just SnappyBufferTooSmall
+        _ -> Nothing
+
+-- TODO: Add a storable interface for RustVec.
+data RustSnappyResult
+type SnappyResult = ForeignPtr RustSnappyResult
+
+uncompressedLength :: RustSlice -> IO SnappyResult
+uncompressedLength bytes = 
+    withForeignPtr bytes (\ptr -> join $ newForeignPtr_ <$> rust_uncompressedLength ptr)
 
