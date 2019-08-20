@@ -5,11 +5,11 @@ name:                haskell-snappy
 version:             0.1.0.0
 synopsis:            Haskell FFI bindings to Rust FFI bindings to snappy compression library.
 -- description:         
-homepage:            https://github.com/stallmanifold/haskell-snappy/
+homepage:            https://github.com/lambdaxymox/haskell-snappy/
 license:             BSD3
 license-file:        LICENSE
-author:              Stallmanifold
-maintainer:          stallmanifold@gmail.com
+author:              LambdaXymox
+maintainer:          lambda.xymox@gmail.com
 -- copyright:           
 -- category:            
 build-type:          Simple
